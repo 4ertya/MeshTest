@@ -21,10 +21,7 @@ public class TransferServiceImpl implements TransferService {
 
     private final AccountRepository accountRepository;
 
-    /**
-     * Thread-safe transfer with SERIALIZABLE isolation + pessimistic locking.
-     * Accounts are always locked in ascending ID order to prevent deadlocks.
-     */
+
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void transfer(Long fromUserId, TransferRequest request) {
@@ -33,7 +30,6 @@ public class TransferServiceImpl implements TransferService {
 
         log.info("Transfer initiated: fromUserId={}, toUserId={}, amount={}", fromUserId, toUserId, amount);
 
-        // Validation
         if (fromUserId.equals(toUserId)) {
             throw new BusinessException("Cannot transfer money to yourself");
         }
@@ -41,7 +37,6 @@ public class TransferServiceImpl implements TransferService {
             throw new BusinessException("Transfer amount must be positive");
         }
 
-        // Lock accounts in consistent order (by userId) to avoid deadlocks
         Account fromAccount;
         Account toAccount;
 
@@ -53,14 +48,12 @@ public class TransferServiceImpl implements TransferService {
             fromAccount = getAccountForUpdate(fromUserId);
         }
 
-        // Validate balance
         if (fromAccount.getBalance().compareTo(amount) < 0) {
             log.warn("Insufficient funds: userId={}, balance={}, requested={}",
                     fromUserId, fromAccount.getBalance(), amount);
             throw new BusinessException("Insufficient funds. Available balance: " + fromAccount.getBalance());
         }
 
-        // Perform transfer
         fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
         toAccount.setBalance(toAccount.getBalance().add(amount));
 

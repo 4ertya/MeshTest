@@ -1,16 +1,9 @@
--- init-db.sql
--- Standalone script to create the banking database schema
--- Can be used independently of Flyway for manual setup or inspection
-
--- ==========================================
--- TABLES
--- ==========================================
 
 CREATE TABLE IF NOT EXISTS "user" (
     id            BIGSERIAL PRIMARY KEY,
     name          VARCHAR(500) NOT NULL,
     date_of_birth DATE         NOT NULL,
-    password      VARCHAR(500) NOT NULL  -- BCrypt hash, min 8 chars original
+    password      VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS account (
@@ -31,26 +24,17 @@ CREATE TABLE IF NOT EXISTS phone_data (
     id      BIGSERIAL PRIMARY KEY,
     user_id BIGINT      NOT NULL REFERENCES "user" (id) ON DELETE CASCADE,
     phone   VARCHAR(13) NOT NULL UNIQUE
-    -- format: 79207865432 (country code 7 + 10 digits)
 );
-
--- ==========================================
--- INDEXES
--- ==========================================
 
 CREATE INDEX IF NOT EXISTS idx_email_data_user_id ON email_data (user_id);
 CREATE INDEX IF NOT EXISTS idx_phone_data_user_id ON phone_data (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_name            ON "user" (name);
 CREATE INDEX IF NOT EXISTS idx_user_dob             ON "user" (date_of_birth);
 
--- ==========================================
--- SEED DATA  (password = 'password123' BCrypt)
--- ==========================================
-
 INSERT INTO "user" (name, date_of_birth, password) VALUES
-    ('Иван Иванов',     '1990-05-01', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
-    ('Мария Петрова',   '1985-03-15', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
-    ('Алексей Сидоров', '1995-11-22', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi')
+    ('Иван Иванов',     '1990-05-01', '$2y$10$lnEccNo7THRv8eQefrpxl.p.4STGSN8n2M9h1ClBJpyHwuQeQXOTK'),
+    ('Мария Петрова',   '1985-03-15', '$2y$10$lnEccNo7THRv8eQefrpxl.p.4STGSN8n2M9h1ClBJpyHwuQeQXOTK'),
+    ('Алексей Сидоров', '1995-11-22', '$2y$10$lnEccNo7THRv8eQefrpxl.p.4STGSN8n2M9h1ClBJpyHwuQeQXOTK')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO account (user_id, balance, initial_balance) VALUES

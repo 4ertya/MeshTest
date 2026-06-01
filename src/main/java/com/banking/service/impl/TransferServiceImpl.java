@@ -37,16 +37,9 @@ public class TransferServiceImpl implements TransferService {
             throw new BusinessException("Transfer amount must be positive");
         }
 
-        Account fromAccount;
-        Account toAccount;
+        Account fromAccount = getAccountForUpdate(fromUserId);
+        Account toAccount = getAccountForUpdate(toUserId);
 
-        if (fromUserId < toUserId) {
-            fromAccount = getAccountForUpdate(fromUserId);
-            toAccount = getAccountForUpdate(toUserId);
-        } else {
-            toAccount = getAccountForUpdate(toUserId);
-            fromAccount = getAccountForUpdate(fromUserId);
-        }
 
         if (fromAccount.getBalance().compareTo(amount) < 0) {
             log.warn("Insufficient funds: userId={}, balance={}, requested={}",
